@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d3fe6">
+  <title>Sains Data Terapan A</title>
+  <meta name="description" content="Situs kelas Sains Data Terapan A: jadwal kuliah, daftar anggota, pengurus, pengumuman, tugas, dan rangkuman materi.">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@1,100..125,800..900&family=Cinzel:wght@700;900&family=Cinzel+Decorative:wght@900&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/rangkuman.css">
+  <!-- Data dimuat sebagai skrip agar situs bisa dibuka langsung dengan klik ganda -->
+  <script defer src="data/kelas.js"></script>
+  <script defer src="data/jadwal.js"></script>
+  <script defer src="data/anggota.js"></script>
+  <script defer src="data/pengumuman.js"></script>
+  <script defer src="data/musik.js"></script>
+  <script defer src="data/rangkuman.js"></script>
+  <script defer src="data/sunting.js"></script>
+  <script defer src="assets/js/panels.js"></script>
+  <script defer src="assets/js/scene.js"></script>
+  <script defer src="assets/js/music.js"></script>
+  <script defer src="assets/js/awan.js"></script>
+  <script defer src="assets/js/rangkuman.js"></script>
+  <script defer src="assets/js/app.js"></script>
+</head>
+<body>
+  <div class="scene" aria-hidden="true">
+    <div class="caustics">
+      <svg viewBox="0 0 1600 700" preserveAspectRatio="none">
+        <defs>
+          <filter id="f-patch" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.004 0.010" numOctaves="3" seed="3"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 .62  0 0 0 0 .94  0 0 0 0 1  3.4 0 0 0 -1.55"/>
+            <feComponentTransfer><feFuncA type="table" tableValues="0 .25 .6 .8"/></feComponentTransfer>
+          </filter>
+          <filter id="f-caustic" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="turbulence" baseFrequency="0.010 0.020" numOctaves="2" seed="11"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 .8  0 0 0 0 .98  0 0 0 0 1  -4.4 0 0 0 1.3"/>
+            <feComponentTransfer><feFuncA type="table" tableValues="0 0 .05 .45 .9 1"/></feComponentTransfer>
+          </filter>
+        </defs>
+        <rect width="1600" height="700" filter="url(#f-patch)"/>
+        <rect width="1600" height="700" filter="url(#f-caustic)" opacity=".85"/>
+      </svg>
+    </div>
+    <i class="ray" style="--x:38vw;--w:7vw;--r:14deg;--a:0.28;--d:6s"></i>
+    <i class="ray" style="--x:52vw;--w:4vw;--r:18deg;--a:0.22;--d:8s"></i>
+    <i class="ray" style="--x:63vw;--w:10vw;--r:21deg;--a:0.3;--d:7s"></i>
+    <i class="ray" style="--x:76vw;--w:5vw;--r:24deg;--a:0.2;--d:9s"></i>
+    <i class="ray" style="--x:86vw;--w:8vw;--r:27deg;--a:0.26;--d:6.5s"></i>
+    <i class="ray" style="--x:45vw;--w:3vw;--r:16deg;--a:0.18;--d:10s"></i>
+    <svg class="snow" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+      <circle cx="997" cy="762" r="2.4" fill="#d8f6ff" opacity="0.13"/>
+      <circle cx="745" cy="948" r="1.0" fill="#d8f6ff" opacity="0.46"/>
+      <circle cx="181" cy="512" r="1.0" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="163" cy="309" r="1.0" fill="#d8f6ff" opacity="0.28"/>
+      <circle cx="291" cy="878" r="1.8" fill="#d8f6ff" opacity="0.18"/>
+      <circle cx="1275" cy="208" r="2.4" fill="#d8f6ff" opacity="0.29"/>
+      <circle cx="212" cy="975" r="1.0" fill="#d8f6ff" opacity="0.20"/>
+      <circle cx="345" cy="984" r="1.0" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="1538" cy="576" r="1.0" fill="#d8f6ff" opacity="0.19"/>
+      <circle cx="1550" cy="261" r="1.8" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="578" cy="233" r="1.0" fill="#d8f6ff" opacity="0.22"/>
+      <circle cx="531" cy="832" r="2.4" fill="#d8f6ff" opacity="0.12"/>
+      <circle cx="1085" cy="391" r="1.4" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="490" cy="721" r="1.0" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="1127" cy="132" r="1.0" fill="#d8f6ff" opacity="0.48"/>
+      <circle cx="572" cy="452" r="2.4" fill="#d8f6ff" opacity="0.42"/>
+      <circle cx="586" cy="612" r="1.0" fill="#d8f6ff" opacity="0.29"/>
+      <circle cx="1132" cy="654" r="1.0" fill="#d8f6ff" opacity="0.17"/>
+      <circle cx="394" cy="834" r="1.8" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="568" cy="563" r="1.8" fill="#d8f6ff" opacity="0.16"/>
+      <circle cx="1197" cy="813" r="1.4" fill="#d8f6ff" opacity="0.13"/>
+      <circle cx="1513" cy="164" r="1.4" fill="#d8f6ff" opacity="0.31"/>
+      <circle cx="580" cy="216" r="1.4" fill="#d8f6ff" opacity="0.47"/>
+      <circle cx="872" cy="367" r="1.4" fill="#d8f6ff" opacity="0.24"/>
+      <circle cx="1278" cy="657" r="1.4" fill="#d8f6ff" opacity="0.50"/>
+      <circle cx="258" cy="125" r="2.4" fill="#d8f6ff" opacity="0.32"/>
+      <circle cx="649" cy="298" r="2.4" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="400" cy="679" r="1.0" fill="#d8f6ff" opacity="0.14"/>
+      <circle cx="1466" cy="110" r="1.8" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="331" cy="983" r="2.4" fill="#d8f6ff" opacity="0.48"/>
+      <circle cx="1009" cy="805" r="1.0" fill="#d8f6ff" opacity="0.18"/>
+      <circle cx="597" cy="134" r="1.8" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="725" cy="999" r="1.0" fill="#d8f6ff" opacity="0.49"/>
+      <circle cx="726" cy="529" r="1.4" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="466" cy="451" r="1.0" fill="#d8f6ff" opacity="0.16"/>
+      <circle cx="1315" cy="569" r="1.0" fill="#d8f6ff" opacity="0.36"/>
+      <circle cx="799" cy="391" r="1.0" fill="#d8f6ff" opacity="0.31"/>
+      <circle cx="824" cy="584" r="2.4" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="1258" cy="793" r="2.4" fill="#d8f6ff" opacity="0.37"/>
+      <circle cx="1215" cy="414" r="1.4" fill="#d8f6ff" opacity="0.44"/>
+      <circle cx="424" cy="982" r="1.4" fill="#d8f6ff" opacity="0.48"/>
+      <circle cx="544" cy="244" r="1.0" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="1238" cy="380" r="1.4" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="1307" cy="676" r="1.4" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="1031" cy="759" r="1.8" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="1349" cy="880" r="1.8" fill="#d8f6ff" opacity="0.49"/>
+      <circle cx="1530" cy="557" r="2.4" fill="#d8f6ff" opacity="0.49"/>
+      <circle cx="318" cy="413" r="1.8" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="126" cy="697" r="1.8" fill="#d8f6ff" opacity="0.19"/>
+      <circle cx="1249" cy="614" r="1.8" fill="#d8f6ff" opacity="0.24"/>
+      <circle cx="885" cy="878" r="1.4" fill="#d8f6ff" opacity="0.39"/>
+      <circle cx="44" cy="227" r="1.8" fill="#d8f6ff" opacity="0.36"/>
+      <circle cx="289" cy="778" r="1.0" fill="#d8f6ff" opacity="0.36"/>
+      <circle cx="67" cy="514" r="1.0" fill="#d8f6ff" opacity="0.18"/>
+      <circle cx="1427" cy="182" r="1.0" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="877" cy="462" r="1.4" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="979" cy="623" r="1.0" fill="#d8f6ff" opacity="0.39"/>
+      <circle cx="598" cy="402" r="1.4" fill="#d8f6ff" opacity="0.45"/>
+      <circle cx="1386" cy="714" r="2.4" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="58" cy="644" r="1.0" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="820" cy="955" r="1.4" fill="#d8f6ff" opacity="0.48"/>
+      <circle cx="1310" cy="466" r="2.4" fill="#d8f6ff" opacity="0.36"/>
+      <circle cx="591" cy="211" r="2.4" fill="#d8f6ff" opacity="0.27"/>
+      <circle cx="763" cy="263" r="1.0" fill="#d8f6ff" opacity="0.35"/>
+      <circle cx="562" cy="902" r="1.0" fill="#d8f6ff" opacity="0.27"/>
+      <circle cx="522" cy="923" r="2.4" fill="#d8f6ff" opacity="0.17"/>
+      <circle cx="1007" cy="900" r="1.8" fill="#d8f6ff" opacity="0.28"/>
+      <circle cx="1563" cy="534" r="1.8" fill="#d8f6ff" opacity="0.49"/>
+      <circle cx="608" cy="964" r="1.0" fill="#d8f6ff" opacity="0.35"/>
+      <circle cx="416" cy="983" r="1.8" fill="#d8f6ff" opacity="0.22"/>
+    </svg>
+    <div class="slab"><p class="wordmark" translate="no">Sains Data<br><span>Terapan A</span></p></div>
+    <i class="bubble" style="left:22vw;--s:12px;--d:11s"></i>
+    <i class="bubble" style="left:27vw;--s:7px;--d:8s;--w:-3s"></i>
+    <i class="bubble" style="left:33vw;--s:16px;--d:13s;--w:-6s"></i>
+    <i class="bubble" style="left:18vw;--s:9px;--d:9s;--w:-1s"></i>
+    <i class="bubble" style="left:38vw;--s:6px;--d:10s;--w:-7s"></i>
+    <i class="shard" style="left:22vw;top:6vh;--s:22px;--c:#ff3d9a;--d:8s"></i>
+    <i class="shard" style="left:31vw;top:62vh;--s:14px;--c:#8ff0ff;--d:11s"></i>
+    <i class="shard" style="left:18vw;top:78vh;--s:26px;--c:#ff3d9a;--o:.55;--d:10s"></i>
+    <i class="shard" style="left:52vw;top:14vh;--s:16px;--c:#ffffff;--o:.6;--d:12s"></i>
+    <i class="shard" style="left:70vw;top:22vh;--s:12px;--c:#8ff0ff;--d:9s"></i>
+    <i class="shard" style="left:12vw;top:46vh;--s:18px;--c:#1aa6ff;--d:13s"></i>
+  </div>
+
+
+  <div class="clock" aria-hidden="true">
+    <span class="clock-time" id="clock-time">00:00</span>
+    <span class="clock-date" id="clock-date"></span>
+  </div>
+  <main id="main">
+  <h1 class="sr-only" translate="no">Sains Data Terapan A</h1>
+  <nav aria-label="Menu utama">
+    <ul class="menu" id="menu"></ul>
+  </nav>
+  </main>
+
+  <section class="music" id="music" aria-label="Pemutar musik">
+    <span class="music-label" aria-hidden="true">Musik</span>
+    <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+    <p class="music-title" aria-live="polite"><span class="music-track" id="music-title">Memuat musik…</span></p>
+    <div class="music-ctl">
+      <button type="button" id="music-prev" aria-label="Lagu sebelumnya"><span aria-hidden="true">&lt;</span></button>
+      <button type="button" id="music-play" class="play" aria-label="Putar musik">
+        <svg class="i-play" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z" fill="currentColor"/></svg>
+        <svg class="i-pause" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5h2.6v9H2.5zM6.9 1.5h2.6v9H6.9z" fill="currentColor"/></svg>
+      </button>
+      <button type="button" id="music-next" aria-label="Lagu berikutnya"><span aria-hidden="true">&gt;</span></button>
+    </div>
+  </section>
+
+  <button class="motion" id="motion" type="button" aria-pressed="false"><kbd aria-hidden="true">M</kbd><span>Diamkan latar</span></button>
+
+  <div class="command" aria-hidden="true">
+    <p class="cmd-title" id="cmd-title">Lihat jadwal kuliah</p>
+    <p class="cmd-label"><span>Perintah</span></p>
+    <div class="keys">
+      <span><kbd>Enter</kbd>Pilih</span>
+      <span><kbd>Esc</kbd>Tutup</span>
+    </div>
+    <p class="touch-hint">Ketuk menu untuk membuka</p>
+  </div>
+
+  <div class="backdrop" id="backdrop"></div>
+  <section class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" tabindex="-1">
+    <div class="panel-head" id="panel-head">
+      <div>
+        <h2 id="panel-title">-</h2>
+        <p class="sub" id="panel-sub"></p>
+      </div>
+      <button class="close" id="close" type="button">Tutup <kbd>Esc</kbd></button>
+    </div>
+    <div class="panel-content" id="panel-body"></div>
+  </section>
+
+  <noscript><p style="position:fixed;z-index:20;inset:auto 1rem 1rem auto;padding:1rem;background:#fff;color:#0a0b1a;border:2px solid #0a0b1a">Aktifkan JavaScript untuk membuka menu kelas.</p></noscript>
+</body>
+</html>

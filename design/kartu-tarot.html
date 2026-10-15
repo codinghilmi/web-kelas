@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[MODEL] Kartu Tarot Rangkuman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cinzel+Decorative:wght@700;900&family=Geist+Mono:wght@500&display=swap">
+<style>
+  :root { --ink: #0a0b1a; --cream: #f4ead2; --gold: #c9973a; --sea: #0d3fe6; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; padding: 2.5rem 1.5rem 3rem; color: #fff; font-family: "Geist Mono", ui-monospace, monospace;
+    background: radial-gradient(ellipse 70% 40% at 70% -5%, rgba(210,250,255,.5), transparent 70%), linear-gradient(#1ea2ff, #1668f2 35%, #0a2db4 75%, #071c80); }
+  h1 { margin: 0 0 .3rem; font: 700 1.6rem/1.2 Cinzel, serif; letter-spacing: .06em; text-align: center; }
+  p.sub { margin: 0 auto 2.2rem; max-width: 46rem; text-align: center; font-size: .78rem; line-height: 1.6; opacity: .9; }
+  .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 2.6rem 2.2rem; }
+  figure { margin: 0; display: grid; justify-items: center; gap: .8rem; }
+  figcaption { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; opacity: .9; }
+  .card { width: 240px; aspect-ratio: 300 / 520; filter: drop-shadow(-8px 12px 0 rgba(4,18,96,.55)); transition: transform .3s cubic-bezier(.16,1,.3,1), filter .3s; cursor: pointer; }
+  .card:hover { transform: translateY(-14px) rotate(-1.5deg) scale(1.03); filter: drop-shadow(-12px 18px 0 #ff2033); }
+  .card svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .fan { position: relative; height: 330px; width: min(980px, 100%); margin: 3.5rem auto 0; }
+  .fan .card { position: absolute; left: 50%; bottom: 0; width: 150px; margin-left: -75px; transform-origin: 50% 160%; }
+  .fan .card:hover { z-index: 10; }
+  h2 { margin: 3rem 0 0; text-align: center; font: 700 1rem/1 Cinzel, serif; letter-spacing: .1em; }
+  .note { max-width: 44rem; margin: 1rem auto 0; font-size: .74rem; line-height: 1.7; opacity: .9; }
+</style>
+</head>
+<body>
+  <h1>Model Kartu Tarot</h1>
+  <p class="sub">Kertas krem, bingkai ganda dengan ornamen sudut, jendela lengkung berisi langit-laut, angka romawi di pita atas, nama mata kuliah di pita bawah. Joker bernomor 0 dengan muka dua arah. Arahkan kursor ke kartu.</p>
+
+  <div class="row" id="row"></div>
+
+  <h2>Di dalam kipas</h2>
+  <div class="fan" id="fan"></div>
+
+<script>
+const INK = "#0a0b1a", CREAM = "#f4ead2", GOLD = "#c9973a", GOLD2 = "#e7c378", RED = "#d90016";
+
+// Simbol mata kuliah (garis emas), digambar dalam kotak 100x100
+const SYM = {
+  kurva: '<path d="M8 80c18 0 22-58 42-58s24 58 42 58"/><path d="M8 86h84M50 22v64" stroke-dasharray="3 5"/>',
+  kurung: '<path d="M36 12c-12 0-8 26-18 38 10 12 6 38 18 38M64 12c12 0 8 26 18 38-10 12-6 38-18 38"/><path d="M44 64l12-28"/>',
+  integral: '<path d="M64 10c-10-4-15 6-16 22l-4 40c-1 14-7 22-17 18"/><path d="M60 54h22M71 43v22"/>',
+  alir: '<path d="M50 8l26 26-26 26-26-26z"/><path d="M50 60v14M28 82h44v10"/><path d="M38 34h24"/>',
+  jaringan: '<circle cx="20" cy="22" r="8"/><circle cx="80" cy="22" r="8"/><circle cx="50" cy="50" r="10"/><circle cx="24" cy="82" r="8"/><circle cx="76" cy="82" r="8"/><path d="M26 28l16 14M74 28L58 42M29 76l14-17M71 76L57 59"/>',
+  buku: '<path d="M50 32c-12-8-28-8-38-4v54c10-4 26-4 38 4 12-8 28-8 38-4V28c-10-4-26-4-38 4zM50 32v54"/><path d="M50 8v12M32 12l5 9M68 12l-5 9"/>',
+  lima: '<circle cx="50" cy="14" r="7"/><circle cx="84" cy="38" r="7"/><circle cx="71" cy="80" r="7"/><circle cx="29" cy="80" r="7"/><circle cx="16" cy="38" r="7"/><path d="M50 22l28 14M80 46l-7 26M63 80H37M27 72l-7-26M22 34l22-16" stroke-dasharray="3 4"/>',
+  tunas: '<path d="M50 92V44"/><path d="M50 62C27 64 18 46 21 28c20-2 30 14 29 34zM50 50c1-19 13-30 30-28 2 17-11 28-30 28z"/><path d="M28 92h44"/>'
+};
+
+const ROMAN = ["0","I","II","III","IV","V","VI"];
+let uid = 0;
+
+// Bingkai dan ornamen yang sama untuk semua kartu depan
+function frame(id) {
+  const corner = (x, y, r) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 0l9 0M0 0l0 9" stroke="${GOLD}" stroke-width="2"/><path d="M4 4l5 5" stroke="${INK}" stroke-width="1.2"/><rect x="-3.5" y="-3.5" width="7" height="7" transform="rotate(45)" fill="${GOLD}" stroke="${INK}" stroke-width="1"/></g>`;
+  return `
+    <rect x="2" y="2" width="296" height="516" rx="14" fill="${CREAM}" stroke="${INK}" stroke-width="4"/>
+    <rect x="12" y="12" width="276" height="496" rx="7" fill="none" stroke="${GOLD}" stroke-width="2.5"/>
+    <rect x="18" y="18" width="264" height="484" rx="4" fill="none" stroke="${INK}" stroke-width="1"/>
+    ${corner(18, 18, 0)}${corner(282, 18, 90)}${corner(282, 502, 180)}${corner(18, 502, 270)}`;
+}
+
+// Jendela lengkung berisi langit, sinar, bintang, bulan, laut
+function arch(id, opts = {}) {
+  const top = opts.top ?? 82, bottom = opts.bottom ?? 404;
+  const path = `M38 ${bottom}V${top + 112}a112 112 0 0 1 224 0V${bottom}z`;
+  const cx = 150, cy = opts.sunY ?? 206;
+  const rays = Array.from({ length: 24 }, (_, i) => {
+    const a = (i / 24) * Math.PI * 2;
+    return `<path d="M${cx} ${cy}L${(cx + Math.cos(a - .05) * 300).toFixed(1)} ${(cy + Math.sin(a - .05) * 300).toFixed(1)}L${(cx + Math.cos(a + .05) * 300).toFixed(1)} ${(cy + Math.sin(a + .05) * 300).toFixed(1)}z" fill="#fff" opacity="${i % 2 ? .05 : .11}"/>`;
+  }).join("");
+  const stars = [[64,150],[232,140],[82,250],[226,262],[114,118],[196,108],[58,320],[244,318]]
+    .map(([x, y], i) => `<path d="M${x} ${y - 6}l1.6 4.4 4.4 1.6-4.4 1.6-1.6 4.4-1.6-4.4-4.4-1.6 4.4-1.6z" fill="${GOLD2}" opacity="${.6 + (i % 3) * .15}"/>`).join("");
+  const waves = [0, 1, 2].map((k) => {
+    const y = bottom - 54 + k * 16;
+    let d = `M38 ${y}`;
+    for (let x = 38; x < 262; x += 28) d += ` q7 -${8 - k * 2} 14 0 t14 0`;
+    return `<path d="${d}V${bottom}H38z" fill="${["#1aa6ff", "#0d3fe6", "#0a2bb0"][k]}" stroke="${INK}" stroke-width="1.2"/>`;
+  }).join("");
+  return `
+    <defs>
+      <clipPath id="c${id}"><path d="${path}"/></clipPath>
+      <linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${opts.sky1 || "#0a1550"}"/><stop offset=".65" stop-color="${opts.sky2 || "#1450ec"}"/><stop offset="1" stop-color="${opts.sky3 || "#3ccbff"}"/>
+      </linearGradient>
+    </defs>
+    <g clip-path="url(#c${id})">
+      <rect x="30" y="${top - 10}" width="240" height="${bottom - top + 20}" fill="url(#g${id})"/>
+      ${rays}${stars}
+      <circle cx="${cx}" cy="${cy}" r="58" fill="none" stroke="${GOLD2}" stroke-width="1.2" opacity=".7"/>
+      <circle cx="${cx}" cy="${cy}" r="66" fill="none" stroke="${GOLD2}" stroke-width=".8" stroke-dasharray="2 5" opacity=".6"/>
+      ${opts.noMoon ? "" : `<path d="M236 112a14 14 0 1 0 6 22 11 11 0 1 1-6-22z" fill="${CREAM}" stroke="${INK}" stroke-width="1.2"/>`}
+      ${opts.noWaves ? "" : waves}
+      ${opts.inner || ""}
+    </g>
+    <path d="${path}" fill="none" stroke="${INK}" stroke-width="3"/>
+    <path d="M44 ${bottom}V${top + 112}a106 106 0 0 1 212 0V${bottom}" fill="none" stroke="${GOLD}" stroke-width="1.4"/>`;
+}
+
+function symbol(k, x, y, s, color = GOLD2) {
+  return `<g transform="translate(${x - 50 * s} ${y - 50 * s}) scale(${s})" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="${INK}" stroke-width="${9 / s}" opacity=".55">${SYM[k]}</g>
+    <g stroke="${color}" stroke-width="${4.2 / s}">${SYM[k]}</g></g>`;
+}
+
+// Pita (ribbon) dengan ujung terlipat
+function ribbon(y, h, text, size, opts = {}) {
+  const fill = opts.fill || INK, color = opts.color || CREAM;
+  const lines = Array.isArray(text) ? text : [text];
+  // Huruf mengecil untuk nama panjang supaya tidak keluar pita (Cinzel kapital ~0.74em per huruf)
+  size = Math.min(size, 196 / (Math.max(...lines.map((l) => l.length)) * 0.74));
+  const ty = y + h / 2 - ((lines.length - 1) * size * 1.05) / 2 + size * .36;
+  return `
+    <path d="M22 ${y + 8}h22v${h}H22l10 ${-h / 2}z" fill="${opts.tail || "#3a2c10"}" stroke="${INK}" stroke-width="1.5"/>
+    <path d="M278 ${y + 8}h-22v${h}h22l-10 ${-h / 2}z" fill="${opts.tail || "#3a2c10"}" stroke="${INK}" stroke-width="1.5"/>
+    <rect x="36" y="${y}" width="228" height="${h}" fill="${fill}" stroke="${INK}" stroke-width="2"/>
+    <rect x="40" y="${y + 4}" width="220" height="${h - 8}" fill="none" stroke="${GOLD}" stroke-width="1"/>
+    ${lines.map((l, i) => `<text x="150" textLength="${Math.min(200, l.length * size * .74).toFixed(0)}" lengthAdjust="spacingAndGlyphs" y="${(ty + i * size * 1.05).toFixed(1)}" text-anchor="middle" font-family="Cinzel, serif" font-weight="900" font-size="${size.toFixed(1)}" fill="${color}">${l}</text>`).join("")}`;
+}
+
+function numeral(text, opts = {}) {
+  return `
+    <path d="M112 26h76l-8 13 8 13h-76l8-13z" fill="${opts.fill || CREAM}" stroke="${INK}" stroke-width="2"/>
+    <text x="150" y="47" text-anchor="middle" font-family="'Cinzel Decorative', Cinzel, serif" font-weight="900" font-size="20" fill="${opts.color || INK}">${text}</text>
+    <path d="M70 39h34M196 39h34" stroke="${GOLD}" stroke-width="1.5"/><circle cx="66" cy="39" r="2.5" fill="${GOLD}"/><circle cx="234" cy="39" r="2.5" fill="${GOLD}"/>`;
+}
+
+// 16 minggu: titik, UTS dan UAS wajik
+function weeks(y, filled = [], now = 7) {
+  return Array.from({ length: 16 }, (_, i) => {
+    const n = i + 1, x = 52 + i * 12.8;
+    if (n === 8 || n === 16) return `<rect x="${x - 3}" y="${y - 3}" width="6" height="6" transform="rotate(45 ${x} ${y})" fill="${INK}"/>`;
+    const f = n === now ? RED : filled.includes(n) ? INK : CREAM;
+    return `<circle cx="${x}" cy="${y}" r="3.4" fill="${f}" stroke="${INK}" stroke-width="1.1"/>`;
+  }).join("");
+}
+
+function cardFront(c) {
+  const id = ++uid;
+  return `<svg viewBox="0 0 300 520" role="img" aria-label="Kartu ${c.num}: ${c.name.join(" ")}">
+    ${frame(id)}
+    ${numeral(c.num)}
+    ${arch(id, { inner: symbol(c.sym, 150, 206, 1.25) })}
+    <text x="150" y="398" text-anchor="middle" font-family="Cinzel, serif" font-weight="700" font-size="11" letter-spacing="3" fill="${CREAM}" stroke="${INK}" stroke-width="3" paint-order="stroke">${c.title}</text>
+    ${ribbon(416, c.name.length > 1 ? 52 : 40, c.name, c.name.length > 1 ? 15 : 17)}
+    <text x="150" y="${c.name.length > 1 ? 484 : 474}" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="1" fill="${INK}">${c.kind} · ${c.filled.length}/14 MINGGU</text>
+    ${weeks(c.name.length > 1 ? 494 : 488, c.filled)}
+  </svg>`;
+}
+
+function cardJoker(c) {
+  const id = ++uid;
+  // Dua arah: separuh atas TEORI (langit), separuh bawah PRAKTIKUM (laut dalam, terbalik)
+  const halfArt = (label, sym, sky1, sky2, sky3, color) => `
+    <g>${arch(id + label, { top: 82, bottom: 236, sunY: 176, sky1, sky2, sky3, noMoon: true, noWaves: true, inner: symbol(sym, 150, 176, .78, color) })}
+    <text x="150" y="104" text-anchor="middle" font-family="Cinzel, serif" font-weight="900" font-size="16" letter-spacing="3" fill="${CREAM}" stroke="${INK}" stroke-width="3.5" paint-order="stroke">${label}</text>
+    <text x="150" y="121" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="1" fill="${CREAM}" stroke="${INK}" stroke-width="2.5" paint-order="stroke">${c[label].filled}/14 MINGGU</text></g>`;
+  return `<svg viewBox="0 0 300 520" role="img" aria-label="Kartu Joker: ${c.name.join(" ")}">
+    ${frame(id)}
+    <rect x="18" y="18" width="264" height="484" rx="4" fill="#efe1bf"/>
+    ${halfArt("TEORI", c.sym, "#0a1550", "#1450ec", "#3ccbff", GOLD2)}
+    <g transform="rotate(180 150 260)">${halfArt("PRAKTIKUM", c.sym, "#1a0308", "#7a0010", "#d90016", "#ffd7a0")}</g>
+    <g transform="rotate(-8 150 260)">
+      <rect x="6" y="233" width="288" height="54" fill="${RED}" stroke="${INK}" stroke-width="2.5"/>
+      <rect x="6" y="238" width="288" height="44" fill="none" stroke="${GOLD2}" stroke-width="1"/>
+      <text x="150" y="256" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="9" letter-spacing="3" fill="${CREAM}">0 · JOKER</text>
+      <text x="150" y="276" text-anchor="middle" font-family="Cinzel, serif" font-weight="900" font-size="16" letter-spacing="1" fill="${CREAM}" stroke="${INK}" stroke-width="3" paint-order="stroke">${c.name.join(" ")}</text>
+    </g>
+    <circle cx="150" cy="30" r="0"/>
+    <path d="M128 22h44l-6 9 6 9h-44l6-9z" fill="${RED}" stroke="${INK}" stroke-width="2"/>
+    <text x="150" y="37" text-anchor="middle" font-family="'Cinzel Decorative', serif" font-weight="900" font-size="15" fill="${CREAM}">0</text>
+    <g transform="rotate(180 150 260)"><path d="M128 22h44l-6 9 6 9h-44l6-9z" fill="${RED}" stroke="${INK}" stroke-width="2"/>
+    <text x="150" y="37" text-anchor="middle" font-family="'Cinzel Decorative', serif" font-weight="900" font-size="15" fill="${CREAM}">0</text></g>
+  </svg>`;
+}
+
+function cardBack() {
+  const id = ++uid, cx = 150, cy = 260;
+  const ray16 = Array.from({ length: 16 }, (_, i) => {
+    const a = (i / 16) * Math.PI * 2 - Math.PI / 2, r1 = 52, r2 = i % 4 === 0 ? 112 : 92;
+    return `<path d="M${(cx + Math.cos(a) * r1).toFixed(1)} ${(cy + Math.sin(a) * r1).toFixed(1)}L${(cx + Math.cos(a) * r2).toFixed(1)} ${(cy + Math.sin(a) * r2).toFixed(1)}" stroke="${GOLD2}" stroke-width="${i % 4 === 0 ? 2.4 : 1.2}"/>
+      <circle cx="${(cx + Math.cos(a) * (r2 + 7)).toFixed(1)}" cy="${(cy + Math.sin(a) * (r2 + 7)).toFixed(1)}" r="${i % 4 === 0 ? 4 : 2.4}" fill="${i === 0 || i === 8 ? INK : GOLD2}" stroke="${GOLD2}" stroke-width="1"/>`;
+  }).join("");
+  const moons = [[150, 74, 0], [150, 446, 180]].map(([x, y, r]) =>
+    `<g transform="rotate(${r} ${x} ${y})"><circle cx="${x}" cy="${y}" r="16" fill="none" stroke="${GOLD2}" stroke-width="1.4"/><path d="M${x + 3} ${y - 11}a12 12 0 1 0 0 22 9 9 0 1 1 0-22z" fill="${GOLD2}"/></g>`).join("");
+  const sideStars = [[70, 120], [230, 120], [70, 400], [230, 400]].map(([x, y]) =>
+    `<path d="M${x} ${y - 9}l2.4 6.6 6.6 2.4-6.6 2.4-2.4 6.6-2.4-6.6-6.6-2.4 6.6-2.4z" fill="${GOLD2}"/>`).join("");
+  return `<svg viewBox="0 0 300 520" role="img" aria-label="Punggung kartu">
+    <defs>
+      <radialGradient id="b${id}" cx=".5" cy=".5" r=".7"><stop offset="0" stop-color="#1450ec"/><stop offset=".7" stop-color="#0a2bb0"/><stop offset="1" stop-color="#071c80"/></radialGradient>
+      <pattern id="p${id}" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M10 0l10 10-10 10L0 10z" fill="none" stroke="#ffffff" stroke-width=".6" opacity=".14"/></pattern>
+    </defs>
+    <rect x="2" y="2" width="296" height="516" rx="14" fill="url(#b${id})" stroke="${INK}" stroke-width="4"/>
+    <rect x="2" y="2" width="296" height="516" rx="14" fill="url(#p${id})"/>
+    <rect x="14" y="14" width="272" height="492" rx="7" fill="none" stroke="${GOLD2}" stroke-width="2.5"/>
+    <rect x="21" y="21" width="258" height="478" rx="4" fill="none" stroke="${GOLD2}" stroke-width="1" stroke-dasharray="2 4"/>
+    ${moons}${sideStars}
+    <circle cx="${cx}" cy="${cy}" r="128" fill="none" stroke="${GOLD2}" stroke-width="1" stroke-dasharray="1 5"/>
+    <circle cx="${cx}" cy="${cy}" r="100" fill="none" stroke="${GOLD2}" stroke-width="1.4"/>
+    ${ray16}
+    <circle cx="${cx}" cy="${cy}" r="46" fill="${CREAM}" stroke="${INK}" stroke-width="3"/>
+    <circle cx="${cx}" cy="${cy}" r="40" fill="none" stroke="${GOLD}" stroke-width="1.2"/>
+    <text x="${cx}" y="${cy + 15}" text-anchor="middle" font-family="'Cinzel Decorative', serif" font-weight="900" font-size="44" fill="${RED}" stroke="${INK}" stroke-width="1.2">A</text>
+    <text x="${cx}" y="486" text-anchor="middle" font-family="Cinzel, serif" font-weight="700" font-size="10" letter-spacing="4" fill="${GOLD2}">SAINS DATA TERAPAN</text>
+  </svg>`;
+}
+
+const SAMPLE = [
+  { num: "II", sym: "integral", title: "SANG PENGHITUNG", name: ["MATEMATIKA 1"], kind: "TEORI", filled: [] },
+  { num: "III", sym: "alir", title: "SANG PERANCANG", name: ["LOGIKA DAN", "ALGORITMA"], kind: "TEORI", filled: [] },
+  { num: "I", sym: "jaringan", title: "SANG PENGHUBUNG", name: ["WORKSHOP SISTEM", "OPERASI & JARINGAN"], kind: "PRAKTIKUM", filled: [] }
+];
+const JOKER = { sym: "kurva", name: ["STATISTIKA DASAR"], TEORI: { filled: 3 }, PRAKTIKUM: { filled: 1 } };
+
+const row = document.getElementById("row");
+const fig = (svg, cap) => `<figure><div class="card">${svg}</div><figcaption>${cap}</figcaption></figure>`;
+row.innerHTML =
+  fig(cardFront(SAMPLE[0]), "Kartu biasa") +
+  fig(cardFront(SAMPLE[1]), "Nama dua baris") +
+  fig(cardJoker(JOKER), "Joker · dua arah") +
+  fig(cardBack(), "Punggung kartu");
+
+// Kipas contoh: 8 kartu
+const FAN = [
+  cardJoker(JOKER),
+  cardFront(SAMPLE[2]),
+  cardFront(SAMPLE[0]),
+  cardFront(SAMPLE[1]),
+  cardFront({ num: "IV", sym: "buku", title: "SANG PENUNTUN", name: ["AGAMA"], kind: "TEORI", filled: [] }),
+  cardFront({ num: "V", sym: "lima", title: "SANG PEMERSATU", name: ["PANCASILA"], kind: "TEORI", filled: [] }),
+  cardFront({ num: "VI", sym: "tunas", title: "SANG PENUMBUH", name: ["PENGEMBANGAN", "KARAKTER"], kind: "TEORI", filled: [] }),
+  cardJoker({ sym: "kurung", name: ["PEMROGRAMAN 1"], TEORI: { filled: 1 }, PRAKTIKUM: { filled: 0 } })
+];
+const fan = document.getElementById("fan");
+fan.innerHTML = FAN.map((s) => `<div class="card">${s}</div>`).join("");
+[...fan.children].forEach((c, i) => {
+  const k = i - 3.5;
+  c.style.transform = `translateX(${k * 98}px) rotate(${k * 6}deg)`;
+  c.addEventListener("mouseenter", () => (c.style.transform = `translateX(${k * 98}px) translateY(-34px) rotate(${k * 3}deg) scale(1.08)`));
+  c.addEventListener("mouseleave", () => (c.style.transform = `translateX(${k * 98}px) rotate(${k * 6}deg)`));
+});
+</script>
+</body>
+</html>

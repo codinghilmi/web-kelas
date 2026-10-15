@@ -1,0 +1,22 @@
+/* tokens.css: semua nilai warna, huruf, dan gerak. Ubah tampilan dari sini. */
+
+:root {
+  --sea: #0d3fe6;
+  --sea-deep: #0a2bb0;
+  --sea-light: #1aa6ff;
+  --foam: #8ff0ff;
+  --ink: #0a0b1a;
+  --paper: #ffffff;
+  --paper-2: #f2f5ff;
+  --red: #ff2033;
+  --red-strong: #d90016; /* untuk teks kecil putih di atas merah (kontras 5.3:1) */
+  --pink: #ff3d9a;
+  --idle: rgba(214, 236, 255, 0.92);
+  --idle-shadow: rgba(4, 18, 96, 0.9);
+  --line: #d7def2;
+  --muted: #59627e;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", sans-serif;
+  --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>[PROTOTIPE LAMA] Sains Data Terapan A</title>
+  <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@1,100..125,800..900&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --sea: #0d3fe6;
+    --sea-deep: #0a2bb0;
+    --sea-light: #1aa6ff;
+    --foam: #8ff0ff;
+    --ink: #0a0b1a;
+    --paper: #ffffff;
+    --paper-2: #f2f5ff;
+    --red: #ff2033;
+    --pink: #ff3d9a;
+    --idle: rgba(150, 205, 255, 0.42);
+    --line: #d7def2;
+    --muted: #59627e;
+    --display: "Archivo", "Arial Black", "Helvetica Neue", sans-serif;
+    --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
+    --mono: "Geist Mono", ui-monospace, monospace;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { min-height: 100dvh; overflow: hidden; background: var(--sea); color: var(--paper); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--foam); outline-offset: 3px; }
+
+  /* ---------- Latar: laut, cahaya permukaan, pecahan ---------- */
+  /* Laut: gradasi kedalaman, cahaya dari permukaan, pola kaustik, berkas cahaya, partikel */
+  .scene { position: fixed; inset: 0; overflow: hidden; pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 42% at 72% -6%, rgba(210, 250, 255, .75), rgba(210, 250, 255, 0) 70%),
+      radial-gradient(ellipse 130% 70% at 50% 125%, rgba(3, 12, 60, .7), rgba(3, 12, 60, 0) 62%),
+      linear-gradient(to bottom, #3ccbff 0%, #1ea2ff 15%, #1668f2 36%, #0e45e2 56%, #0a2db4 78%, #071c80 100%); }
+  /* Permukaan air dilihat dari bawah: bidang miring yang menjauh ke tengah layar */
+  .caustics { position: absolute; left: -30vw; right: -30vw; top: -4vh; height: 70vh; transform-origin: 50% 0; transform: perspective(900px) rotateX(64deg); -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 92%); mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 92%); mix-blend-mode: screen; }
+  .caustics svg { display: block; width: 100%; height: 100%; }
+  .ray { position: absolute; top: -12vh; left: var(--x); width: var(--w); height: 100vh; background: linear-gradient(to bottom, rgba(190, 245, 255, var(--a)) 0%, rgba(190, 245, 255, 0) 85%); filter: blur(16px); transform: rotate(var(--r)); transform-origin: 50% 0; mix-blend-mode: screen; animation: shimmer var(--d) ease-in-out infinite alternate; }
+  @keyframes shimmer { from { opacity: .5; } to { opacity: 1; } }
+  .snow { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .shard { position: absolute; width: var(--s, 18px); height: calc(var(--s, 18px) * 1.6); background: var(--c, var(--paper)); opacity: var(--o, .8); clip-path: polygon(50% 0, 100% 40%, 50% 100%, 0 55%); animation: float var(--d, 9s) ease-in-out infinite alternate; }
+  @keyframes float { to { transform: translateY(-26px) rotate(24deg); } }
+
+  /* Lempeng putih di kiri dengan tulisan vertikal besar */
+  .slab { position: absolute; top: 0; bottom: 0; left: 0; width: clamp(7rem, 30vw, 30rem); background: var(--paper); clip-path: polygon(0 0, 100% 0, 62% 100%, 0 100%); }
+  .wordmark { position: absolute; top: 50%; left: -.06em; margin: 0; writing-mode: vertical-rl; transform: translateY(-50%) rotate(180deg); font: italic 900 14vh/.8 var(--display); font-stretch: 112%; letter-spacing: -.035em; color: var(--ink); white-space: nowrap; text-transform: uppercase; }
+  .wordmark span { color: #8a8f9e; }
+
+  .bubble { position: absolute; bottom: -2rem; width: var(--s, 10px); height: var(--s, 10px); border: 1px solid rgba(255, 255, 255, .65); border-radius: 50%; background: radial-gradient(circle at 32% 30%, rgba(255, 255, 255, .95) 0 14%, rgba(255, 255, 255, .14) 38%, rgba(255, 255, 255, 0) 70%); opacity: .8; animation: bubble var(--d, 9s) linear infinite; animation-delay: var(--w, 0s); }
+  @keyframes bubble { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: .75; } 50% { transform: translate(12px, -55vh); } 100% { transform: translate(-6px, -112vh); opacity: 0; } }
+
+  /* ---------- Kotak "hari ini" ---------- */
+  /* Jam digital rusak di kejauhan: merah pudar, buram oleh air, berkedip tidak teratur */
+  .far-clock { position: fixed; z-index: 2; left: 34vw; bottom: 7vh; width: clamp(9rem, 17vw, 17rem); pointer-events: none; opacity: .42; filter: blur(1.3px) drop-shadow(0 0 6px rgba(255, 32, 51, .35)); animation: flicker 7s steps(1, end) infinite; }
+  .far-clock svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .far-clock polygon, .far-clock rect { fill: #ff2033; opacity: .07; transition: opacity .06s; }
+  .far-clock .on { opacity: 1; }
+  .far-clock .colon rect { opacity: 1; animation: blink 1s steps(1, end) infinite; }
+  .far-clock.dead { opacity: .04; }
+  @keyframes blink { 50% { opacity: .1; } }
+  @keyframes flicker { 0% { opacity: .42; } 9% { opacity: .3; } 10% { opacity: .42; } 37% { opacity: .08; } 38% { opacity: .4; } 39% { opacity: .1; } 41% { opacity: .38; } 64% { opacity: .33; } 81% { opacity: .02; } 84% { opacity: .42; } 96% { opacity: .25; } }
+  @media (max-width: 760px) { .far-clock { left: 5.5rem; bottom: 17vh; width: 8rem; } }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  /* ---------- Menu bertumpuk ---------- */
+  .menu { position: fixed; z-index: 3; top: 50%; left: clamp(6rem, 43vw, 48rem); transform: translateY(-48%); margin: 0; padding: 0; list-style: none; }
+  .menu li { margin-top: .06em; font-size: clamp(2.3rem, 6.4vw, 5.6rem); }
+  .item { position: relative; display: block; padding: 0 .1em; border: 0; background: none; cursor: pointer; font: italic 900 1em/.86 var(--display); font-stretch: 115%; letter-spacing: -.03em; text-transform: uppercase; color: var(--idle); transform: translateX(var(--x)) rotate(var(--r)); transform-origin: left center; transition: color .14s var(--ease), transform .3s var(--ease); white-space: nowrap; }
+  .item .txt { position: relative; z-index: 2; }
+  .item::before, .item::after { content: ""; position: absolute; z-index: 1; pointer-events: none; inset: .02em -2.2em -.18em -.8em; transform: scaleX(0); transform-origin: left; transition: transform .32s var(--ease); }
+  .item::before { background: var(--pink); clip-path: polygon(0 6%, 100% 0, 58% 100%); }
+  .item::after { background: var(--paper); clip-path: polygon(0 14%, 100% 7%, 58% 100%); transition-delay: .04s; }
+  .item:hover { color: rgba(190, 228, 255, .7); }
+  .item.on { color: var(--red); text-shadow: -.05em .05em 0 var(--ink); transform: translateX(calc(var(--x) + .35em)) rotate(var(--r)) scale(1.14); z-index: 5; }
+  .item.on::before, .item.on::after { transform: scaleX(1); }
+  .item:focus-visible { outline: none; }
+  /* Fokus keyboard selalu sama dengan item terpilih (merah + pelat), jadi itulah penanda fokusnya. */
+
+  /* ---------- Kotak perintah kanan bawah ---------- */
+  .command { position: fixed; z-index: 4; right: 0; bottom: clamp(1rem, 5vh, 3rem); width: min(26rem, 80vw); text-align: right; }
+  .cmd-title { margin: 0 clamp(1rem, 3vw, 3rem) 0 0; font: italic 900 clamp(1.4rem, 2.4vw, 2.2rem)/1.05 var(--display); letter-spacing: -.01em; }
+  .cmd-label { display: flex; align-items: center; gap: .5rem; margin: .2rem 0 .8rem; font: 700 .78rem/1 var(--sans); }
+  .cmd-label { padding-left: 4rem; }
+  .cmd-label::after { content: ""; flex: 1; height: 1px; background: var(--paper); }
+  .keys { display: flex; justify-content: flex-end; gap: 1rem; margin-right: clamp(1rem, 3vw, 3rem); font: italic 800 1.25rem/1 var(--display); }
+  .keys span { display: inline-flex; align-items: center; gap: .4rem; }
+  kbd { display: inline-grid; place-items: center; min-width: 1.7rem; height: 1.7rem; padding: 0 .35rem; border: 2px solid var(--paper); font: 500 .7rem/1 var(--mono); font-style: normal; }
+  .touch-hint { display: none; }
+
+  /* ---------- Panel isi ---------- */
+  .backdrop { position: fixed; inset: 0; z-index: 8; background: rgba(6, 18, 80, .45); opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .panel { position: fixed; z-index: 9; top: 0; right: 0; bottom: 0; width: min(46rem, 100%); padding: 0; background: var(--paper-2); color: var(--ink); clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%); transform: translateX(105%); transition: transform .45s var(--ease); overflow-y: auto; visibility: hidden; }
+  body.open .panel { transform: none; visibility: visible; }
+  body.open .backdrop { opacity: 1; pointer-events: auto; }
+  body.open .menu, body.open .command { opacity: .25; }
+  .panel-head { position: relative; overflow: hidden; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: clamp(1.5rem, 4vh, 2.75rem) clamp(1.25rem, 4vw, 3rem) 3.2rem clamp(2.5rem, 9vw, 7rem); background: linear-gradient(100deg, #ffffff 0%, #ffffff 26%, #a8e6ff 48%, #2fa9ff 72%, #0d3fe6 100%); clip-path: polygon(0 0, 100% 0, 100% 78%, 0 100%); }
+  .panel-head::before { content: attr(data-ghost); position: absolute; right: -.05em; bottom: -.12em; font: italic 900 clamp(4.5rem, 12vw, 8rem)/.8 var(--display); font-stretch: 115%; letter-spacing: -.04em; text-transform: uppercase; color: transparent; -webkit-text-stroke: 2px rgba(255, 255, 255, .55); pointer-events: none; }
+  .panel-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 100%; background: var(--pink); clip-path: polygon(0 calc(100% - 6px), 100% calc(78% - 6px), 100% 78%, 0 100%); }
+  .panel-head > * { position: relative; z-index: 1; }
+  .panel-content { padding: .5rem clamp(1.25rem, 4vw, 3rem) 2.5rem clamp(2.5rem, 9vw, 7rem); animation: rise .45s var(--ease) both; }
+  .panel h2 { margin: 0; font: italic 900 clamp(2.4rem, 6vw, 4rem)/.9 var(--display); font-stretch: 115%; letter-spacing: -.03em; text-transform: uppercase; color: var(--red); text-shadow: -.05em .05em 0 var(--ink); }
+  .panel .sub { display: inline-block; margin: .7rem 0 0; padding: .2rem .6rem; background: var(--ink); color: var(--paper); font: 500 .72rem/1.4 var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+  .close { flex: none; display: inline-flex; align-items: center; gap: .5rem; padding: .55rem .9rem; border: 2px solid var(--ink); background: var(--paper); cursor: pointer; font: italic 800 .95rem/1 var(--display); transition: transform .15s var(--ease); }
+  .close:hover { background: var(--ink); color: var(--paper); }
+  .close:active { transform: scale(.97); }
+  .close kbd { border-color: currentColor; min-width: 1.5rem; height: 1.4rem; }
+
+  .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: .4rem; margin-bottom: 1.25rem; }
+  .tab { padding: .55rem .4rem .5rem; border: 2px solid var(--ink); background: var(--paper); cursor: pointer; text-align: left; transform: skewX(-10deg); transition: background-color .15s; }
+  .tab > span { display: block; transform: skewX(10deg); }
+  .tab b { display: block; font: italic 900 1.35rem/1 var(--display); text-transform: uppercase; }
+  .tab small { font: 500 .66rem/1 var(--mono); color: var(--muted); text-transform: uppercase; }
+  .tab[aria-selected="true"] { background: var(--sea); border-color: var(--ink); color: var(--paper); box-shadow: 4px 4px 0 var(--pink); }
+  .tab[aria-selected="true"] small { color: #cfe0ff; }
+
+  .list { margin: 0; padding: 0; list-style: none; background: var(--paper); border: 2px solid var(--ink); }
+  .list > li { display: grid; grid-template-columns: 7.2rem 1fr; gap: .25rem 1rem; padding: 1rem 1.1rem; border-left: 5px solid transparent; animation: rise .4s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); transition: transform .2s var(--ease), border-color .2s; }
+  .list.sched > li { grid-template-columns: 3.2rem 8.6rem 1fr; align-items: start; }
+  .list > li:hover { transform: translateX(4px); }
+  .snum { font: italic 900 2.4rem/.9 var(--display); color: transparent; -webkit-text-stroke: 1.5px var(--sea); }
+  .tblock { justify-self: start; white-space: nowrap; padding: .3rem .65rem; background: var(--sea); color: var(--paper); font: 500 .8rem/1.4 var(--mono); clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%); }
+  .list.sched h3 { font: italic 800 1.15rem/1.2 var(--display); text-transform: uppercase; letter-spacing: -.01em; }
+  .list > li.now { border-left-color: var(--red); background: #fff6f7; }
+  .list > li.next { border-left-color: var(--sea-light); }
+  .tag.now { background: var(--red); } .tag.next { background: var(--sea-light); color: var(--ink); }
+  .list > li + li { border-top: 1px solid var(--line); }
+  .list > li:hover { border-left-color: var(--red); }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  .time { font: 500 .85rem/1.5 var(--mono); }
+  .list h3 { margin: 0; font: 600 1rem/1.35 var(--sans); }
+  .list p { margin: .15rem 0 0; font-size: .85rem; color: var(--muted); }
+  .tag { display: inline-block; margin-top: .45rem; padding: .15rem .6rem; background: var(--ink); color: var(--paper); font: 500 .65rem/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+  .tag.red { background: var(--red); }
+
+  .search { display: block; width: 100%; margin-bottom: 1rem; padding: .8rem 1rem; border: 2px solid var(--ink); background: var(--paper); font: 500 1rem var(--sans); color: var(--ink); }
+  .search:focus { outline: 3px solid var(--sea); outline-offset: 0; }
+  .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: .5rem; margin: 0; padding: 0; list-style: none; }
+  .people li { display: flex; align-items: center; gap: .75rem; padding: .6rem .75rem; background: var(--paper); border: 1px solid var(--line); animation: rise .35s var(--ease) both; animation-delay: calc(var(--i, 0) * 18ms); }
+  .initial { flex: none; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; background: var(--sea); color: var(--paper); font: italic 900 .85rem/1 var(--display); clip-path: polygon(0 0, 100% 0, 100% 75%, 75% 100%, 0 100%); }
+  .people span:last-child { font-size: .9rem; line-height: 1.3; }
+
+  .officers { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .75rem; }
+  .officer { position: relative; padding: 1.4rem 1.2rem 1.2rem; background: var(--paper); border: 2px solid var(--ink); animation: rise .4s var(--ease) both; animation-delay: calc(var(--i, 0) * 70ms); }
+  .officer .num { font: italic 900 2.8rem/1 var(--display); color: var(--paper); -webkit-text-stroke: 2px var(--sea); }
+  .officer .role { margin: .5rem 0 .4rem; font: 500 .68rem/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--red); }
+  .officer p { margin: 0; font-weight: 600; line-height: 1.4; }
+  .wali { margin-bottom: .75rem; background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .wali .num { -webkit-text-stroke-color: var(--foam); color: var(--ink); }
+
+  .empty { padding: 2.5rem 1.5rem; background: var(--paper); border: 2px dashed var(--ink); text-align: center; }
+  .empty b { display: block; font: italic 900 1.6rem/1.1 var(--display); text-transform: uppercase; }
+  .empty p { margin: .6rem auto 0; max-width: 28rem; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+  .empty code { font: 500 .8rem var(--mono); background: var(--paper-2); padding: .1rem .35rem; }
+  .count { margin: 0 0 .75rem; font: 500 .75rem/1 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  /* ---------- Layar kecil ---------- */
+  @media (max-width: 760px) {
+    .slab { width: 5.5rem; clip-path: polygon(0 0, 100% 0, 55% 100%, 0 100%); }
+    .slab { width: 7rem; } .wordmark span, .wordmark br { display: none; }
+    .menu { left: 5.2rem; top: 54%; }
+    .menu li { font-size: clamp(2rem, 10.5vw, 3rem); }
+    .keys { display: none; }
+    .touch-hint { display: block; margin: 0 1rem 0 0; font: italic 700 .9rem/1 var(--display); }
+    .panel { clip-path: none; padding-left: 1.25rem; }
+    .list > li, .list.sched > li { grid-template-columns: 2.6rem 1fr; } .list.sched .tblock { grid-column: 2; } .list.sched li > div { grid-column: 2; }
+    .tab b { font-size: 1.05rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+  <a href="../index.html" style="position:fixed;z-index:999;left:50%;top:.6rem;transform:translateX(-50%);padding:.55rem 1rem;background:#ffd400;color:#0a0b1a;border:3px solid #0a0b1a;font:800 .95rem/1.2 system-ui,sans-serif;text-decoration:none;box-shadow:4px 4px 0 #0a0b1a">PROTOTIPE LAMA, bukan situs sebenarnya. Buka index.html &rarr;</a>
+  <div class="scene" aria-hidden="true">
+    <div class="caustics">
+      <svg viewBox="0 0 1600 700" preserveAspectRatio="none">
+        <defs>
+          <filter id="f-patch" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.004 0.010" numOctaves="3" seed="3"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 .62  0 0 0 0 .94  0 0 0 0 1  3.4 0 0 0 -1.55"/>
+            <feComponentTransfer><feFuncA type="table" tableValues="0 .25 .6 .8"/></feComponentTransfer>
+          </filter>
+          <filter id="f-caustic" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="turbulence" baseFrequency="0.010 0.020" numOctaves="2" seed="11"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 .8  0 0 0 0 .98  0 0 0 0 1  -4.4 0 0 0 1.3"/>
+            <feComponentTransfer><feFuncA type="table" tableValues="0 0 .05 .45 .9 1"/></feComponentTransfer>
+          </filter>
+        </defs>
+        <rect width="1600" height="700" filter="url(#f-patch)"/>
+        <rect width="1600" height="700" filter="url(#f-caustic)" opacity=".85"/>
+      </svg>
+    </div>
+    <i class="ray" style="--x:38vw;--w:7vw;--r:14deg;--a:0.28;--d:6s"></i>
+    <i class="ray" style="--x:52vw;--w:4vw;--r:18deg;--a:0.22;--d:8s"></i>
+    <i class="ray" style="--x:63vw;--w:10vw;--r:21deg;--a:0.3;--d:7s"></i>
+    <i class="ray" style="--x:76vw;--w:5vw;--r:24deg;--a:0.2;--d:9s"></i>
+    <i class="ray" style="--x:86vw;--w:8vw;--r:27deg;--a:0.26;--d:6.5s"></i>
+    <i class="ray" style="--x:45vw;--w:3vw;--r:16deg;--a:0.18;--d:10s"></i>
+    <svg class="snow" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+      <circle cx="997" cy="762" r="2.4" fill="#d8f6ff" opacity="0.13"/>
+      <circle cx="745" cy="948" r="1.0" fill="#d8f6ff" opacity="0.46"/>
+      <circle cx="181" cy="512" r="1.0" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="163" cy="309" r="1.0" fill="#d8f6ff" opacity="0.28"/>
+      <circle cx="291" cy="878" r="1.8" fill="#d8f6ff" opacity="0.18"/>
+      <circle cx="1275" cy="208" r="2.4" fill="#d8f6ff" opacity="0.29"/>
+      <circle cx="212" cy="975" r="1.0" fill="#d8f6ff" opacity="0.20"/>
+      <circle cx="345" cy="984" r="1.0" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="1538" cy="576" r="1.0" fill="#d8f6ff" opacity="0.19"/>
+      <circle cx="1550" cy="261" r="1.8" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="578" cy="233" r="1.0" fill="#d8f6ff" opacity="0.22"/>
+      <circle cx="531" cy="832" r="2.4" fill="#d8f6ff" opacity="0.12"/>
+      <circle cx="1085" cy="391" r="1.4" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="490" cy="721" r="1.0" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="1127" cy="132" r="1.0" fill="#d8f6ff" opacity="0.48"/>
+      <circle cx="572" cy="452" r="2.4" fill="#d8f6ff" opacity="0.42"/>
+      <circle cx="586" cy="612" r="1.0" fill="#d8f6ff" opacity="0.29"/>
+      <circle cx="1132" cy="654" r="1.0" fill="#d8f6ff" opacity="0.17"/>
+      <circle cx="394" cy="834" r="1.8" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="568" cy="563" r="1.8" fill="#d8f6ff" opacity="0.16"/>
+      <circle cx="1197" cy="813" r="1.4" fill="#d8f6ff" opacity="0.13"/>
+      <circle cx="1513" cy="164" r="1.4" fill="#d8f6ff" opacity="0.31"/>
+      <circle cx="580" cy="216" r="1.4" fill="#d8f6ff" opacity="0.47"/>
+      <circle cx="872" cy="367" r="1.4" fill="#d8f6ff" opacity="0.24"/>
+      <circle cx="1278" cy="657" r="1.4" fill="#d8f6ff" opacity="0.50"/>
+      <circle cx="258" cy="125" r="2.4" fill="#d8f6ff" opacity="0.32"/>
+      <circle cx="649" cy="298" r="2.4" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="400" cy="679" r="1.0" fill="#d8f6ff" opacity="0.14"/>
+      <circle cx="1466" cy="110" r="1.8" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="331" cy="983" r="2.4" fill="#d8f6ff" opacity="0.48"/>
+      <circle cx="1009" cy="805" r="1.0" fill="#d8f6ff" opacity="0.18"/>
+      <circle cx="597" cy="134" r="1.8" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="725" cy="999" r="1.0" fill="#d8f6ff" opacity="0.49"/>
+      <circle cx="726" cy="529" r="1.4" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="466" cy="451" r="1.0" fill="#d8f6ff" opacity="0.16"/>
+      <circle cx="1315" cy="569" r="1.0" fill="#d8f6ff" opacity="0.36"/>
+      <circle cx="799" cy="391" r="1.0" fill="#d8f6ff" opacity="0.31"/>
+      <circle cx="824" cy="584" r="2.4" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="1258" cy="793" r="2.4" fill="#d8f6ff" opacity="0.37"/>
+      <circle cx="1215" cy="414" r="1.4" fill="#d8f6ff" opacity="0.44"/>
+      <circle cx="424" cy="982" r="1.4" fill="#d8f6ff" opacity="0.48"/>
+      <circle cx="544" cy="244" r="1.0" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="1238" cy="380" r="1.4" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="1307" cy="676" r="1.4" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="1031" cy="759" r="1.8" fill="#d8f6ff" opacity="0.25"/>
+      <circle cx="1349" cy="880" r="1.8" fill="#d8f6ff" opacity="0.49"/>
+      <circle cx="1530" cy="557" r="2.4" fill="#d8f6ff" opacity="0.49"/>
+      <circle cx="318" cy="413" r="1.8" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="126" cy="697" r="1.8" fill="#d8f6ff" opacity="0.19"/>
+      <circle cx="1249" cy="614" r="1.8" fill="#d8f6ff" opacity="0.24"/>
+      <circle cx="885" cy="878" r="1.4" fill="#d8f6ff" opacity="0.39"/>
+      <circle cx="44" cy="227" r="1.8" fill="#d8f6ff" opacity="0.36"/>
+      <circle cx="289" cy="778" r="1.0" fill="#d8f6ff" opacity="0.36"/>
+      <circle cx="67" cy="514" r="1.0" fill="#d8f6ff" opacity="0.18"/>
+      <circle cx="1427" cy="182" r="1.0" fill="#d8f6ff" opacity="0.30"/>
+      <circle cx="877" cy="462" r="1.4" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="979" cy="623" r="1.0" fill="#d8f6ff" opacity="0.39"/>
+      <circle cx="598" cy="402" r="1.4" fill="#d8f6ff" opacity="0.45"/>
+      <circle cx="1386" cy="714" r="2.4" fill="#d8f6ff" opacity="0.26"/>
+      <circle cx="58" cy="644" r="1.0" fill="#d8f6ff" opacity="0.23"/>
+      <circle cx="820" cy="955" r="1.4" fill="#d8f6ff" opacity="0.48"/>
+      <circle cx="1310" cy="466" r="2.4" fill="#d8f6ff" opacity="0.36"/>
+      <circle cx="591" cy="211" r="2.4" fill="#d8f6ff" opacity="0.27"/>
+      <circle cx="763" cy="263" r="1.0" fill="#d8f6ff" opacity="0.35"/>
+      <circle cx="562" cy="902" r="1.0" fill="#d8f6ff" opacity="0.27"/>
+      <circle cx="522" cy="923" r="2.4" fill="#d8f6ff" opacity="0.17"/>
+      <circle cx="1007" cy="900" r="1.8" fill="#d8f6ff" opacity="0.28"/>
+      <circle cx="1563" cy="534" r="1.8" fill="#d8f6ff" opacity="0.49"/>
+      <circle cx="608" cy="964" r="1.0" fill="#d8f6ff" opacity="0.35"/>
+      <circle cx="416" cy="983" r="1.8" fill="#d8f6ff" opacity="0.22"/>
+    </svg>
+    <div class="slab"><p class="wordmark">Sains Data<br><span>Terapan A</span></p></div>
+    <i class="bubble" style="left:22vw;--s:12px;--d:11s"></i>
+    <i class="bubble" style="left:27vw;--s:7px;--d:8s;--w:-3s"></i>
+    <i class="bubble" style="left:33vw;--s:16px;--d:13s;--w:-6s"></i>
+    <i class="bubble" style="left:18vw;--s:9px;--d:9s;--w:-1s"></i>
+    <i class="bubble" style="left:38vw;--s:6px;--d:10s;--w:-7s"></i>
+    <i class="shard" style="left:24vw;top:30vh;--s:22px;--c:#ff3d9a;--d:8s"></i>
+    <i class="shard" style="left:31vw;top:62vh;--s:14px;--c:#8ff0ff;--d:11s"></i>
+    <i class="shard" style="left:18vw;top:78vh;--s:26px;--c:#ff3d9a;--o:.55;--d:10s"></i>
+    <i class="shard" style="left:52vw;top:14vh;--s:16px;--c:#ffffff;--o:.6;--d:12s"></i>
+    <i class="shard" style="left:70vw;top:22vh;--s:12px;--c:#8ff0ff;--d:9s"></i>
+    <i class="shard" style="left:12vw;top:46vh;--s:18px;--c:#1aa6ff;--d:13s"></i>
+  </div>
+
+
+  <div class="far-clock" aria-hidden="true">
+    <svg viewBox="-6 -4 240 80"><g transform="skewX(-7)"><g class="dg" data-i="0" transform="translate(0 0)"><polygon data-s="a" points="6,4 9,1 31,1 34,4 31,7 9,7"/><polygon data-s="g" points="6,35 9,32 31,32 34,35 31,38 9,38"/><polygon data-s="d" points="6,66 9,63 31,63 34,66 31,69 9,69"/><polygon data-s="f" points="4,6 7,9 7,30 4,33 1,30 1,9"/><polygon data-s="b" points="36,6 39,9 39,30 36,33 33,30 33,9"/><polygon data-s="e" points="4,37 7,40 7,61 4,64 1,61 1,40"/><polygon data-s="c" points="36,37 39,40 39,61 36,64 33,61 33,40"/></g><g class="dg" data-i="1" transform="translate(54 0)"><polygon data-s="a" points="6,4 9,1 31,1 34,4 31,7 9,7"/><polygon data-s="g" points="6,35 9,32 31,32 34,35 31,38 9,38"/><polygon data-s="d" points="6,66 9,63 31,63 34,66 31,69 9,69"/><polygon data-s="f" points="4,6 7,9 7,30 4,33 1,30 1,9"/><polygon data-s="b" points="36,6 39,9 39,30 36,33 33,30 33,9"/><polygon data-s="e" points="4,37 7,40 7,61 4,64 1,61 1,40"/><polygon data-s="c" points="36,37 39,40 39,61 36,64 33,61 33,40"/></g><g class="dg" data-i="2" transform="translate(132 0)"><polygon data-s="a" points="6,4 9,1 31,1 34,4 31,7 9,7"/><polygon data-s="g" points="6,35 9,32 31,32 34,35 31,38 9,38"/><polygon data-s="d" points="6,66 9,63 31,63 34,66 31,69 9,69"/><polygon data-s="f" points="4,6 7,9 7,30 4,33 1,30 1,9"/><polygon data-s="b" points="36,6 39,9 39,30 36,33 33,30 33,9"/><polygon data-s="e" points="4,37 7,40 7,61 4,64 1,61 1,40"/><polygon data-s="c" points="36,37 39,40 39,61 36,64 33,61 33,40"/></g><g class="dg" data-i="3" transform="translate(186 0)"><polygon data-s="a" points="6,4 9,1 31,1 34,4 31,7 9,7"/><polygon data-s="g" points="6,35 9,32 31,32 34,35 31,38 9,38"/><polygon data-s="d" points="6,66 9,63 31,63 34,66 31,69 9,69"/><polygon data-s="f" points="4,6 7,9 7,30 4,33 1,30 1,9"/><polygon data-s="b" points="36,6 39,9 39,30 36,33 33,30 33,9"/><polygon data-s="e" points="4,37 7,40 7,61 4,64 1,61 1,40"/><polygon data-s="c" points="36,37 39,40 39,61 36,64 33,61 33,40"/></g><g class="colon"><rect x="111" y="20" width="7" height="7"/><rect x="111" y="44" width="7" height="7"/></g></g></svg>
+  </div>
+  <nav aria-label="Menu utama">
+    <ul class="menu" id="menu"></ul>
+  </nav>
+
+  <div class="command" aria-hidden="true">
+    <p class="cmd-title" id="cmd-title">Lihat jadwal kuliah</p>
+    <p class="cmd-label"><span>Perintah</span></p>
+    <div class="keys">
+      <span><kbd>Enter</kbd>Pilih</span>
+      <span><kbd>Esc</kbd>Tutup</span>
+    </div>
+    <p class="touch-hint">Ketuk menu untuk membuka</p>
+  </div>
+
+  <div class="backdrop" id="backdrop"></div>
+  <section class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" tabindex="-1">
+    <div class="panel-head" id="panel-head">
+      <div>
+        <h2 id="panel-title">-</h2>
+        <p class="sub" id="panel-sub"></p>
+      </div>
+      <button class="close" id="close" type="button">Tutup <kbd>Esc</kbd></button>
+    </div>
+    <div class="panel-content" id="panel-body"></div>
+  </section>
+
+<script>
+/* Data sama dengan berkas data/*.json. Saat diintegrasikan, bagian ini diganti loadJSON(). */
+const DATA = {
+  kelas: { nama: "Sains Data Terapan A", dosenWali: "Alfi Fadliana, S.Si., M.Stat." },
+  jadwal: {
+    Senin: [{ matkul: "Workshop Sistem Operasi dan Jaringan", dosen: ["Yesta Medya Mahardhika"], ruang: "SAW 07.01", mulai: "11.20", selesai: "14.40", pj: "Ghazi", jenis: "praktikum" }],
+    Selasa: [
+      { matkul: "Agama", dosen: ["Imamul Arifin"], ruang: "SAW 08.08", mulai: "09.40", selesai: "11.20", pj: "Hilmi", jenis: "kuliah" },
+      { matkul: "Praktikum Statistika Dasar", dosen: ["Ronny Susetyoko"], ruang: "SAW 07.07", mulai: "11.20", selesai: "13.50", pj: "Favian", jenis: "praktikum" },
+      { matkul: "Matematika 1", dosen: ["Ira Prasetyaningrum"], ruang: "B 201", mulai: "13.50", selesai: "15.30", pj: "Chris", jenis: "kuliah" }
+    ],
+    Rabu: [
+      { matkul: "Praktikum Pemrograman 1", dosen: ["Dian Septiani Santoso"], ruang: "SAW 07.07", mulai: "10.30", selesai: "14.40", pj: "Ryandra", jenis: "praktikum" },
+      { matkul: "Pengembangan Karakter", dosen: ["Isbat Uzzin Nadhori", "Nalussa'ada"], ruang: "SAW 04.08", mulai: "14.40", selesai: "16.20", pj: "Tika", jenis: "kuliah" }
+    ],
+    Kamis: [
+      { matkul: "Pancasila", dosen: ["Moh. Zikky", "Haryadi Amran Darwito"], ruang: "HH 101", mulai: "08.00", selesai: "09.40", pj: "Nawfal", jenis: "kuliah" },
+      { matkul: "Statistika Dasar", dosen: ["Ronny Susetyoko"], ruang: "SAW 06.10", mulai: "11.20", selesai: "13.50", pj: "Favian", jenis: "kuliah" },
+      { matkul: "Pemrograman 1", dosen: ["Dian Septiani Santoso"], ruang: "SAW 06.03", mulai: "14.40", selesai: "16.20", pj: "Ryandra", jenis: "kuliah" }
+    ],
+    Jumat: [{ matkul: "Logika dan Algoritma", dosen: ["Nana Ramadjianti"], ruang: "B 303", mulai: "09.40", selesai: "11.20", pj: "Dinar", jenis: "kuliah" }]
+  },
+  pengurus: [
+    { jabatan: "Komandan Tingkat", nama: ["Abdullah Azzam Hibatullah"] },
+    { jabatan: "Wakil Komandan Tingkat", nama: ["Saskia Tifani Amelia"] },
+    { jabatan: "Sekretaris", nama: ["Alina Yusika Safitri", "Shasya Aurellia Azzahra"] },
+    { jabatan: "Bendahara", nama: ["Rihana Shafira Azzalia", "Fauzan Aqeelah Ghazi Rabbani"] }
+  ],
+  mahasiswa: ["Rihana Shafira Azzalia","Ryandra Alifah Hafizd","Davin Zoe Akhmad","Atiyah Dinar Aliyah","Raditya Jeremia Kriswanto Putra","Alina Yusika Safitri","Shasya Aurellia Azzahra","Christoper Natanael Partogi Panjaitan","Atika Meilinda","Favian Zada Putra","Afghan Yazid Ilmany","Arven Hael Viscaya Atjeh","Hants Immanuel Marito Hutauruk","Muhammad Hilmi Mu'Afa","Marvin Febrian Agyantra","Mohammad Aditya Arkoun","Nawfal Rayhan Subagyo","Saskia Tifani Amelia","Sifa Luvena Taufiqah Palupi","Elyka Imelda Mayzananda","Tirta Prasetya Kusuma Wardana","Fauzan Aqeelah Ghazi Rabbani","Abdullah Azzam Hibatullah","Ghazi Silkaputera Hanania"],
+  pengumuman: [
+    { jenis: "pengumuman", judul: "Situs kelas sedang dibuat", tanggal: "2026-10-03", isi: "Jadwal, daftar anggota, dan papan pengumuman akan tersedia di situs ini secara bertahap.", matkul: null, tenggat: null }
+  ]
+};
+
+const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+const KULIAH = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+const now = new Date();
+const hariIni = HARI[now.getDay()];
+const hariAktif = KULIAH.includes(hariIni) ? hariIni : "Senin";
+
+const MENU = [
+  { key: "jadwal", label: "Jadwal", desc: "Lihat jadwal kuliah", r: -13, x: 2 },
+  { key: "anggota", label: "Anggota", desc: "Daftar mahasiswa", r: -11, x: 0 },
+  { key: "pengurus", label: "Pengurus", desc: "Struktur organisasi", r: -9, x: 3.5 },
+  { key: "pengumuman", label: "Pengumuman", desc: "Kabar terbaru kelas", r: -5, x: -1.5 },
+  { key: "tugas", label: "Tugas", desc: "Tugas dan tenggat", r: -8, x: 4 }
+];
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const initials = (n) => n.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+
+/* ---------- Kotak hari ini ---------- */
+/* ---------- Menu ---------- */
+const menuEl = $("#menu");
+MENU.forEach((m, i) => {
+  const li = document.createElement("li");
+  li.innerHTML = `<button class="item" type="button" aria-haspopup="dialog" data-i="${i}" style="--r:${m.r}deg;--x:${m.x}vw"><span class="txt">${esc(m.label)}</span></button>`;
+  menuEl.appendChild(li);
+});
+const items = [...menuEl.querySelectorAll(".item")];
+let current = 0;
+let lastOpener = null;
+
+function select(i, focus = true) {
+  current = (i + items.length) % items.length;
+  items.forEach((el, j) => {
+    el.classList.toggle("on", j === current);
+    el.setAttribute("aria-current", j === current ? "true" : "false");
+  });
+  $("#cmd-title").textContent = MENU[current].desc;
+  if (focus) items[current].focus({ preventScroll: true });
+}
+
+items.forEach((el, i) => {
+  el.addEventListener("mouseenter", () => select(i, false));
+  el.addEventListener("focus", () => { if (current !== i) select(i, false); });
+  el.addEventListener("click", () => { select(i, false); openPanel(MENU[i].key, el); });
+});
+
+/* ---------- Panel ---------- */
+const panel = $("#panel");
+const body = $("#panel-body");
+
+const RENDER = {
+  jadwal(day = hariAktif) {
+    const tabs = KULIAH.map((d) => `<button class="tab" role="tab" type="button" data-day="${d}" aria-selected="${d === day}"><span><b>${d.slice(0, 3)}</b><small>${DATA.jadwal[d].length} sesi</small></span></button>`).join("");
+    const mins = (hm) => { const [h, m] = hm.split(".").map(Number); return h * 60 + m; };
+    const nowM = now.getHours() * 60 + now.getMinutes();
+    let nextFound = false;
+    const rows = DATA.jadwal[day].map((s, i) => {
+      let state = "";
+      if (day === hariIni) {
+        if (nowM >= mins(s.mulai) && nowM < mins(s.selesai)) state = "now";
+        else if (!nextFound && nowM < mins(s.mulai)) { state = "next"; nextFound = true; }
+      }
+      const status = state === "now" ? `<span class="tag now">Sedang berlangsung</span> ` : state === "next" ? `<span class="tag next">Berikutnya</span> ` : "";
+      return `<li class="${state}" style="--i:${i}"><span class="snum" aria-hidden="true">${String(i + 1).padStart(2, "0")}</span><span class="tblock">${s.mulai} - ${s.selesai}</span><div><h3>${esc(s.matkul)}</h3><p>${esc(s.dosen.join(" / "))} \u00b7 ${esc(s.ruang)}</p><p>PJ: ${esc(s.pj)}</p>${status}<span class="tag ${s.jenis === "praktikum" ? "red" : ""}">${s.jenis}</span></div></li>`;
+    }).join("");
+    return {
+      sub: day === hariIni ? `${day} \u00b7 hari ini` : day,
+      html: `<div class="tabs" role="tablist" aria-label="Pilih hari">${tabs}</div><ul class="list sched">${rows}</ul>`,
+      after() {
+        const tabEls = [...body.querySelectorAll(".tab")];
+        tabEls.forEach((t, i) => {
+          t.addEventListener("click", () => show("jadwal", t.dataset.day, t.dataset.day));
+          t.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+              e.preventDefault();
+              const n = tabEls[(i + (e.key === "ArrowRight" ? 1 : -1) + tabEls.length) % tabEls.length];
+              show("jadwal", n.dataset.day, n.dataset.day);
+            }
+          });
+        });
+      }
+    };
+  },
+  anggota() {
+    return {
+      sub: `${DATA.mahasiswa.length} mahasiswa`,
+      html: `<label class="sr-only" for="cari" style="position:absolute;left:-9999px">Cari nama</label><input class="search" id="cari" type="search" placeholder="Cari nama mahasiswa" autocomplete="off"><p class="count" id="count"></p><ul class="people" id="people"></ul>`,
+      after() {
+        const sorted = [...DATA.mahasiswa].sort((a, b) => a.localeCompare(b, "id"));
+        const draw = (q = "") => {
+          const hit = sorted.filter((n) => n.toLowerCase().includes(q.trim().toLowerCase()));
+          $("#count").textContent = q ? `${hit.length} dari ${sorted.length} nama` : `${sorted.length} nama, urut abjad`;
+          $("#people").innerHTML = hit.length
+            ? hit.map((n, i) => `<li style="--i:${i}"><span class="initial" aria-hidden="true">${initials(n)}</span><span>${esc(n)}</span></li>`).join("")
+            : `<li style="grid-column:1/-1;justify-content:center">Tidak ada nama yang cocok dengan "${esc(q)}"</li>`;
+        };
+        draw();
+        $("#cari").addEventListener("input", (e) => draw(e.target.value));
+      }
+    };
+  },
+  pengurus() {
+    const roman = ["I", "II", "III", "IV", "V", "VI"];
+    const cards = DATA.pengurus.map((p, i) => `<div class="officer" style="--i:${i + 1}"><div class="num">${roman[i]}</div><p class="role">${esc(p.jabatan)}</p><p>${p.nama.map(esc).join("<br>")}</p></div>`).join("");
+    return { sub: "Struktur organisasi kelas", html: `<div class="officer wali" style="--i:0"><div class="num">0</div><p class="role" style="color:var(--foam)">Dosen Wali</p><p>${esc(DATA.kelas.dosenWali)}</p></div><div class="officers">${cards}</div>` };
+  },
+  pengumuman() {
+    const list = DATA.pengumuman.filter((p) => p.jenis === "pengumuman").sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+    if (!list.length) return { sub: "Terbaru di atas", html: `<div class="empty"><b>Belum ada pengumuman</b><p>Tambahkan item di <code>data/pengumuman.json</code>.</p></div>` };
+    return { sub: "Terbaru di atas", html: `<ul class="list">${list.map((p, i) => { const d = new Date(p.tanggal); return `<li style="--i:${i}"><span class="time">${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}</span><div><h3>${esc(p.judul)}</h3><p>${esc(p.isi)}</p></div></li>`; }).join("")}</ul>` };
+  },
+  tugas() {
+    const list = DATA.pengumuman.filter((p) => p.jenis === "tugas");
+    if (!list.length) return { sub: "Tugas dan tenggat", html: `<div class="empty"><b>Belum ada tugas</b><p>Tambahkan item berjenis <code>"tugas"</code> beserta mata kuliah dan tenggat di <code>data/pengumuman.json</code>.</p></div>` };
+    return { sub: "Tugas dan tenggat", html: "" };
+  }
+};
+
+function show(key, arg, focusDay) {
+  const view = RENDER[key](arg);
+  $("#panel-title").textContent = MENU.find((m) => m.key === key).label;
+  $("#panel-head").dataset.ghost = MENU.find((m) => m.key === key).label;
+  $("#panel-sub").textContent = view.sub || "";
+  body.innerHTML = view.html;
+  if (view.after) view.after();
+  if (focusDay) body.querySelector(`[data-day="${focusDay}"]`).focus();
+}
+
+function openPanel(key, opener) {
+  lastOpener = opener;
+  show(key);
+  document.body.classList.add("open");
+  menuEl.setAttribute("inert", "");
+  setTimeout(() => (body.querySelector(".tab[aria-selected='true'], .search") || $("#close")).focus(), 60);
+}
+
+function closePanel() {
+  if (!document.body.classList.contains("open")) return;
+  document.body.classList.remove("open");
+  menuEl.removeAttribute("inert");
+  if (lastOpener) lastOpener.focus({ preventScroll: true });
+}
+
+$("#close").addEventListener("click", closePanel);
+$("#backdrop").addEventListener("click", closePanel);
+
+/* ---------- Keyboard global ---------- */
+document.addEventListener("keydown", (e) => {
+  const open = document.body.classList.contains("open");
+  if (e.key === "Escape") { closePanel(); return; }
+  if (open) {
+    if (e.key === "Tab") { /* jaga fokus tetap di panel */
+      const f = [...panel.querySelectorAll("button, input")];
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    return;
+  }
+  if (["ArrowDown", "s", "S"].includes(e.key)) { e.preventDefault(); select(current + 1); }
+  if (["ArrowUp", "w", "W"].includes(e.key)) { e.preventDefault(); select(current - 1); }
+});
+
+select(0, false);
+
+/* ---------- Jam digital rusak di kejauhan ---------- */
+(function farClock() {
+  const MAP = { 0: "abcdef", 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc", 5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg", 9: "abcdfg" };
+  const box = document.querySelector(".far-clock");
+  const digits = [...box.querySelectorAll(".dg")];
+  const show = () => {
+    const t = new Date();
+    const str = String(t.getHours()).padStart(2, "0") + String(t.getMinutes()).padStart(2, "0");
+    digits.forEach((g, i) => g.querySelectorAll("polygon").forEach((p) => p.classList.toggle("on", MAP[str[i]].includes(p.dataset.s))));
+  };
+  show();
+  setInterval(show, 1000);
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  // Kerusakan: kadang satu segmen padam sesaat, kadang seluruh layar mati sekejap dua kali
+  const glitch = () => {
+    if (Math.random() < 0.6) {
+      const lit = box.querySelectorAll("polygon.on");
+      const seg = lit[Math.floor(Math.random() * lit.length)];
+      if (seg) { seg.classList.remove("on"); setTimeout(show, 120 + Math.random() * 500); }
+    } else {
+      box.classList.add("dead");
+      setTimeout(() => box.classList.remove("dead"), 70);
+      setTimeout(() => box.classList.add("dead"), 160);
+      setTimeout(() => box.classList.remove("dead"), 260);
+    }
+    setTimeout(glitch, 1200 + Math.random() * 4500);
+  };
+  setTimeout(glitch, 2000);
+})();
+
+/* ---------- Wordmark memenuhi tinggi layar ---------- */
+function fitWordmark() {
+  const wm = document.querySelector(".wordmark");
+  wm.style.fontSize = "100px";
+  const len = wm.getBoundingClientRect().height;
+  wm.style.fontSize = (100 * innerHeight * 1.04 / len) + "px";
+}
+fitWordmark();
+addEventListener("resize", fitWordmark);
+if (document.fonts) document.fonts.ready.then(fitWordmark);
+
+</script>
+</body>
+</html>

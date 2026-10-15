@@ -1,0 +1,13 @@
+/* base.css: reset, dasar halaman, aksesibilitas */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { min-height: 100dvh; overflow: hidden; background: var(--sea); color: var(--paper); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid var(--foam); outline-offset: 3px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) {
+  /* Tanpa transisi sama sekali: transisi .01ms untuk semua properti membuat ukuran yang dibaca skrip tertinggal satu frame */
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
