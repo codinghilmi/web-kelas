@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Website Kelas Sains Data Terapan A
 
 Situs satu halaman (HTML, CSS, JavaScript murni, tanpa framework) dengan menu bergaya menu gim: Jadwal, Anggota, Pengurus, Pengumuman, Tugas, Rangkuman. Setiap menu membuka panel yang isinya dibaca dari berkas di folder `data/`.
@@ -81,3 +82,6 @@ Pakai hanya lagu milik sendiri atau berlisensi bebas (misalnya YouTube Audio Lib
 
 ## Privasi
 Berkas data di situs statis bisa dibaca siapa pun yang membuka situsnya. Karena itu hanya nama dan jabatan yang dimuat; NRP, jenis kelamin, dan kontak pribadi tidak disimpan.
+=======
+Haloooo
+>>>>>>> 80ceba772e17a61405800ea3dfd39a9602d8d332
